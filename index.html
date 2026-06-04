@@ -857,9 +857,10 @@
     position: fixed; top: 0; left: 0; right: 0;
     z-index: 25;
     background: linear-gradient(to bottom, rgba(7,9,10,0.85), rgba(7,9,10,0));
-    padding: calc(var(--safe-top) + 10px) 12px 18px;
+    padding: calc(var(--safe-top) + 10px) 90px 18px 12px;  /* right pad clears the LITE button */
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
     font-size: 11px;
     letter-spacing: .15em;
     text-transform: uppercase;
@@ -867,11 +868,13 @@
   }
   body.is-mobile .mobile-head { display: flex; }
   .mh-brand {
-    color: var(--accent);
+    color: var(--text);
     font-family: 'Major Mono Display', monospace;
-    font-size: 13px;
-    letter-spacing: .3em;
+    font-size: 14px;
+    letter-spacing: .12em;
+    flex: 0 0 auto;
   }
+  .mh-brand span { color: var(--accent); }
   .mh-eff {
     color: var(--text);
     font-weight: 500;
@@ -891,21 +894,26 @@
   .mobile-bar {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0;
-    z-index: 30;
+    z-index: 50;                 /* above the menu drawer (40) + settings panel (45) — always tappable */
     background: rgba(7,9,10,0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
-    padding: 8px 8px calc(8px + var(--safe-bottom));
-    gap: 4px;
+    padding: 8px 10px calc(8px + var(--safe-bottom));
+    gap: 6px;
     justify-content: space-between;
     align-items: stretch;
   }
-  body.is-mobile .mobile-bar { display: flex; }
-  body.is-mobile.menu-open .mobile-bar { display: none; }
-  /* Keep the welcome screen clean — hide the bottom bar + hint until the user starts/skips */
+  body.is-mobile .mobile-bar { display: flex; }   /* always on screen (even over the open menu) */
+  /* Hide chrome over the welcome screen so it stays clean */
   body.is-mobile.welcome-up .mobile-bar,
-  body.is-mobile.welcome-up .mobile-hint { display: none !important; }
+  body.is-mobile.welcome-up .mobile-hint,
+  body.is-mobile.welcome-up .mobile-head,
+  body.is-mobile.welcome-up .output-icons,
+  body.is-mobile.welcome-up .eco-fab { display: none !important; }
+  /* On mobile: drop popout (separate window) + blackout — keep only fullscreen */
+  body.is-mobile #popoutBtn,
+  body.is-mobile #blackoutBtn { display: none !important; }
   .mb-btn {
     flex: 1;
     min-width: 0;
@@ -933,7 +941,7 @@
     color: var(--accent);
   }
   .mb-btn .ic {
-    width: 22px; height: 22px;
+    width: 25px; height: 25px;
     display: block;
     color: inherit;
   }
@@ -1195,38 +1203,25 @@
 
   <!-- === Mobile UI === -->
   <div class="mobile-head" id="mobileHead">
-    <div class="mh-brand">bitjus</div>
+    <div class="mh-brand">bit<span>·</span>jus</div>
     <div class="mh-eff" id="mobileEffName"><span class="num" id="mobileFavNum"></span><span id="mobileEffLabel">––</span></div>
   </div>
   <div class="mobile-hint">tap <b>menu</b> to choose effect · <b>mic</b> for audio</div>
   <div class="mobile-bar" id="mobileBar">
-    <button class="mb-btn" id="mbPrev" title="prev favorite">
+    <button class="mb-btn" id="mbPrev" title="prev" aria-label="prev">
       <span class="ic"><svg viewBox="0 0 24 24"><polyline points="18,5 9,12 18,19"/><line x1="5" y1="5" x2="5" y2="19"/></svg></span>
-      <span class="lbl">prev</span>
     </button>
-    <button class="mb-btn" id="mbNext" title="next favorite">
+    <button class="mb-btn" id="mbNext" title="next" aria-label="next">
       <span class="ic"><svg viewBox="0 0 24 24"><polyline points="6,5 15,12 6,19"/><line x1="19" y1="5" x2="19" y2="19"/></svg></span>
-      <span class="lbl">next</span>
     </button>
-    <button class="mb-btn" id="mbRand" title="randomize params">
+    <button class="mb-btn" id="mbRand" title="random" aria-label="random">
       <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/></svg></span>
-      <span class="lbl">random</span>
     </button>
-    <button class="mb-btn" id="mbGallery" title="browse all">
+    <button class="mb-btn" id="mbGallery" title="browse" aria-label="browse">
       <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg></span>
-      <span class="lbl">browse</span>
     </button>
-    <button class="mb-btn" id="mbAudio" title="mic on/off">
-      <span class="ic"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></span>
-      <span class="lbl">mic</span>
-    </button>
-    <button class="mb-btn" id="mbCam" title="camera on/off">
-      <span class="ic"><svg viewBox="0 0 24 24"><path d="M21 19V8a2 2 0 0 0-2-2h-3l-2-3H10L8 6H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"/><circle cx="12" cy="13" r="4"/></svg></span>
-      <span class="lbl">cam</span>
-    </button>
-    <button class="mb-btn" id="mbMenu" title="menu (effects + params + perf)">
+    <button class="mb-btn" id="mbMenu" title="menu" aria-label="menu">
       <span class="ic"><svg viewBox="0 0 24 24" stroke-width="1.8"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></span>
-      <span class="lbl">menu</span>
     </button>
   </div>
 
@@ -14913,16 +14908,31 @@ const Mobile = (() => {
     const tabBtn = document.querySelector('.welcome-mode[data-mode="tab"]');
     if (tabBtn) tabBtn.style.display = 'none';
 
-    document.getElementById('mbPrev').addEventListener('click', () => stepFavorite(-1));
-    document.getElementById('mbNext').addEventListener('click', () => stepFavorite(+1));
-    document.getElementById('mbRand').addEventListener('click', () => Engine.randomize());
+    // Return to the main screen: close the menu drawer, settings panel and gallery.
+    const goMain = () => {
+      document.body.classList.remove('menu-open');
+      if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
+      if (typeof Browse !== 'undefined' && Browse.isOpen()) Browse.close();
+    };
+    // Player buttons → act + back to main screen.
+    document.getElementById('mbPrev').addEventListener('click', () => { stepFavorite(-1); goMain(); });
+    document.getElementById('mbNext').addEventListener('click', () => { stepFavorite(+1); goMain(); });
+    document.getElementById('mbRand').addEventListener('click', () => { Engine.randomize(); goMain(); });
+    // Gallery → open the gallery (close menu/settings first); tap again closes it.
     document.getElementById('mbGallery').addEventListener('click', () => {
-      if (Browse.isOpen()) Browse.close(); else Browse.open();
+      if (typeof Browse !== 'undefined' && Browse.isOpen()) { Browse.close(); return; }
+      document.body.classList.remove('menu-open');
+      if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
+      Browse.open();
     });
-    document.getElementById('mbAudio').addEventListener('click', toggleMic);
-    document.getElementById('mbCam').addEventListener('click', toggleCam);
+    // Menu → toggle the drawer.
     document.getElementById('mbMenu').addEventListener('click', () => {
-      document.body.classList.add('menu-open');
+      if (document.body.classList.contains('menu-open')) {
+        document.body.classList.remove('menu-open');
+      } else {
+        if (typeof Browse !== 'undefined' && Browse.isOpen()) Browse.close();
+        document.body.classList.add('menu-open');
+      }
     });
     document.getElementById('mobileMenuClose').addEventListener('click', () => {
       document.body.classList.remove('menu-open');
