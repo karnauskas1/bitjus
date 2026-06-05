@@ -68,7 +68,9 @@
     flex-shrink: 0; display: flex; align-items: center; }
   .sidebar-brand > span:first-child { color: var(--accent); }
   .sidebar-brand span { color: var(--accent); }
-  .brand-gear { margin-left: auto; flex: 0 0 auto;
+  .brand-lang { margin-left: auto; flex: 0 0 auto; width: auto; }
+  .brand-lang .seg-btn { padding: 4px 9px; letter-spacing: .12em; }
+  .brand-gear { margin-left: 8px; flex: 0 0 auto;
     background: transparent; border: 1px solid var(--line);
     color: var(--text-dim); width: 30px; height: 30px;
     border-radius: 4px; cursor: pointer; display: inline-flex;
@@ -851,6 +853,30 @@
   .mobile-menu-close:active { border-color: var(--accent); }
   body:not(.is-mobile) .mobile-menu-close { display: none; }
 
+  /* === Mobile: icon rail docked inside the open menu (desktop-style) === */
+  body.is-mobile .icon-rail { display: none; }
+  body.is-mobile .rail-brand { display: none; }   /* one logo in the menu = the sidebar 'bit·jus' */
+  body.is-mobile .brand-gear { display: none !important; }  /* rail icons replace the gear on mobile */
+  body.is-mobile #buildStamp { display: none; }             /* dev build stamp clutters the narrow header */
+  body.is-mobile.menu-open .icon-rail {
+    display: flex; flex-direction: column; align-items: center;
+    position: fixed; top: 0; left: 0;
+    bottom: calc(70px + var(--safe-bottom));
+    width: 56px; z-index: 46;
+    background: rgba(7,9,10,0.97); border-right: 1px solid var(--line);
+    padding: calc(var(--safe-top) + 12px) 0 10px; gap: 4px;
+    overflow-y: auto; overflow-x: hidden;
+  }
+  /* Dock the active panel beside the rail */
+  body.is-mobile.menu-open .sidebar {
+    left: 56px !important; width: calc(100% - 56px) !important;
+  }
+  body.is-mobile.menu-open .sidebar.collapsed { transform: translateX(calc(-100% - 60px)) !important; }
+  body.is-mobile.menu-open #settingsPanel {
+    left: 56px !important; right: auto !important; width: calc(100% - 56px) !important;
+    top: 0 !important; bottom: calc(70px + var(--safe-bottom)) !important; height: auto !important;
+  }
+
   /* Top header — brand + current effect */
   .mobile-head {
     display: none;
@@ -1244,6 +1270,10 @@
       <div class="sidebar-brand">
         <span>bit<span>·</span>jus</span>
         <span id="buildStamp" title="build version — confirm you loaded the latest file" style="margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.04em;color:#5fd3a0;opacity:.75;font-family:ui-monospace,monospace;">v2.0 · b.2026-06-01.40</span>
+        <div class="segmented brand-lang" id="setupLang" title="language">
+          <button class="seg-btn" data-lang-btn="en">EN</button>
+          <button class="seg-btn" data-lang-btn="ru">RU</button>
+        </div>
         <button class="brand-gear" id="settingsOpen" title="setup · audio · autoplay (settings)" aria-label="open settings">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
@@ -1523,29 +1553,13 @@
       <button class="sp-close" id="settingsClose">×</button>
     </div>
     <div class="sp-body sp-body-settings">
-      <div class="acc-section" data-section="setup">
+      <div class="acc-section" data-section="camera">
         <button class="acc-head">
-          <span class="acc-title">setup</span>
-          <span class="acc-hint" id="setupHint">audio · video</span>
+          <span class="acc-title">camera</span>
+          <span class="acc-hint">video · masks</span>
           <span class="acc-arrow">▾</span>
         </button>
         <div class="acc-body">
-          <div class="setup-section">
-            <div class="setup-label">language</div>
-            <div class="segmented" id="setupLang">
-              <button class="seg-btn" data-lang-btn="en">EN</button>
-              <button class="seg-btn" data-lang-btn="ru">RU</button>
-            </div>
-          </div>
-          <div class="setup-section">
-            <div class="setup-label">source <span class="hint" id="srcHint">choose mode</span></div>
-            <div class="segmented" id="modeToggle">
-              <button class="seg-btn active" data-mode="device">device</button>
-              <button class="seg-btn" data-mode="tab">tab</button>
-            </div>
-            <select id="deviceSelect"><option>— grant access —</option></select>
-            <button class="start-btn" id="startBtn">start input</button>
-          </div>
           <div class="setup-section">
             <div class="setup-label">video <span class="hint" id="videoHint">off</span></div>
             <div class="segmented" id="videoModeToggle">
@@ -1574,11 +1588,6 @@
             <button class="mini-btn" id="poseToggleBtn" title="MediaPipe Pose: 33 body landmarks (nose, wrists, shoulders, hips, ankles)">enable pose tracking</button>
             <div id="poseStatus" style="font-size:11px;color:#666;margin-top:4px;display:none;"></div>
           </div>
-          <div class="setup-section">
-            <div class="setup-label">midi <span class="hint" id="midiHint">off</span></div>
-            <button class="mini-btn" id="midiToggleBtn" title="Bind a MIDI controller's knobs/buttons to actions & effect params">enable MIDI</button>
-            <div id="midiMap" style="display:none;margin-top:8px;"></div>
-          </div>
           <div class="setup-section" id="textSetupSection">
             <div class="setup-label">text <span class="hint" id="textHint">BITJUS</span></div>
             <input type="text" id="textInput" placeholder="your text here" value="BITJUS" style="width:100%;background:#0a0a0c;border:1px solid #2a2a30;border-radius:4px;color:#cfcfcf;padding:6px;font-family:ui-monospace,monospace;font-size:12px;box-sizing:border-box;">
@@ -1593,8 +1602,37 @@
               <label style="flex:1;font-size:11px;color:#888;">bg <input type="color" id="textBgInput" value="#000000" style="width:100%;height:24px;border:none;background:transparent;"></label>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="acc-section" data-section="microphone">
+        <button class="acc-head">
+          <span class="acc-title">microphone</span>
+          <span class="acc-hint">audio in</span>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
           <div class="setup-section">
-            <div class="setup-label">perf <span class="hint">lite mode ⚡ top-right</span></div>
+            <div class="setup-label">source <span class="hint" id="srcHint">choose mode</span></div>
+            <div class="segmented" id="modeToggle">
+              <button class="seg-btn active" data-mode="device">device</button>
+              <button class="seg-btn" data-mode="tab">tab</button>
+            </div>
+            <select id="deviceSelect"><option>— grant access —</option></select>
+            <button class="start-btn" id="startBtn">start input</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-section" data-section="lite">
+        <button class="acc-head">
+          <span class="acc-title">lite · perf</span>
+          <span class="acc-hint">⚡</span>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="setup-section">
+            <div class="setup-label">perf <span class="hint">lite mode ⚡ bottom-right</span></div>
             <div class="pose-slider">
               <span class="lbl">RES</span>
               <input type="range" class="slider" id="renderScale" min="0.15" max="1" step="0.05" value="1">
@@ -1611,6 +1649,21 @@
               <span class="val" id="particleScaleVal">100%</span>
             </div>
             <button class="mini-btn" id="benchmarkBtn" title="Benchmark FPS of every effect (~1-2 min)">📊 benchmark all effects</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-section" data-section="midi">
+        <button class="acc-head">
+          <span class="acc-title">midi</span>
+          <span class="acc-hint">controller</span>
+          <span class="acc-arrow">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="setup-section">
+            <div class="setup-label">midi <span class="hint" id="midiHint">off</span></div>
+            <button class="mini-btn" id="midiToggleBtn" title="Bind a MIDI controller's knobs/buttons to actions & effect params">enable MIDI</button>
+            <div id="midiMap" style="display:none;margin-top:8px;"></div>
           </div>
         </div>
       </div>
@@ -1876,8 +1929,17 @@
     </button>
     <div class="rail-spacer"></div>
     <div class="rail-sep"></div>
-    <button class="rail-btn" data-rail="setup" data-tip="setup" aria-label="setup">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <button class="rail-btn" data-rail="camera" data-tip="camera" aria-label="camera">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><polygon points="16,10 21,7 21,17 16,14" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button class="rail-btn" data-rail="microphone" data-tip="microphone" aria-label="microphone">
+      <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+    </button>
+    <button class="rail-btn" data-rail="lite" data-tip="lite · perf" aria-label="lite">
+      <svg viewBox="0 0 24 24"><polygon points="13,2 4,14 11,14 9,22 20,10 13,10" fill="currentColor" stroke="currentColor" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="rail-btn" data-rail="midi" data-tip="midi" aria-label="midi">
+      <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="1.5"/><line x1="8" y1="7" x2="8" y2="13"/><line x1="13" y1="7" x2="13" y2="13"/><circle cx="6.5" cy="15.4" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="15.4" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.4" r="1" fill="currentColor" stroke="none"/></svg>
     </button>
     <button class="rail-btn" data-rail="audio" data-tip="audio mixer" aria-label="audio mixer">
       <svg viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/><rect x="3.5" y="6" width="5" height="3.2" rx="1" fill="currentColor" stroke="none"/><rect x="9.5" y="13" width="5" height="3.2" rx="1" fill="currentColor" stroke="none"/><rect x="15.5" y="9" width="5" height="3.2" rx="1" fill="currentColor" stroke="none"/></svg>
@@ -13025,9 +13087,9 @@ function setSettingsOpen(open) {
   if (!settingsPanel) return;
   settingsPanel.classList.toggle('open', open);
   if (settingsOpenBtn) settingsOpenBtn.classList.toggle('live', open);
-  // On first open, expand the setup section if the user has nothing expanded yet.
+  // On first open, expand the camera section if the user has nothing expanded yet.
   if (open && !settingsPanel.querySelector('.acc-section.open')) {
-    const s = settingsPanel.querySelector('.acc-section[data-section="setup"]');
+    const s = settingsPanel.querySelector('.acc-section[data-section="camera"]');
     if (s) s.classList.add('open');
   }
 }
@@ -13069,7 +13131,8 @@ const RailNav = {
   // which container hosts each section
   _groups: {
     effects: 'sidebar', params: 'sidebar', overlay: 'sidebar', logo: 'sidebar',
-    setup: 'settings', audio: 'settings', autoplay: 'settings'
+    camera: 'settings', microphone: 'settings', lite: 'settings', midi: 'settings',
+    audio: 'settings', autoplay: 'settings'
   },
   current: null,
   _expandOnly(container, section) {
@@ -14927,35 +14990,43 @@ const Mobile = (() => {
     const tabBtn = document.querySelector('.welcome-mode[data-mode="tab"]');
     if (tabBtn) tabBtn.style.display = 'none';
 
-    // Return to the main screen: close the menu drawer, settings panel and gallery.
+    // Return to the main screen: close the menu drawer, rail/panel, settings and gallery.
     const goMain = () => {
       document.body.classList.remove('menu-open');
-      if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
+      if (typeof RailNav !== 'undefined') RailNav.close();
+      else if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
       if (typeof Browse !== 'undefined' && Browse.isOpen()) Browse.close();
     };
     // Player buttons → act + back to main screen.
     document.getElementById('mbPrev').addEventListener('click', () => { stepFavorite(-1); goMain(); });
     document.getElementById('mbNext').addEventListener('click', () => { stepFavorite(+1); goMain(); });
     document.getElementById('mbRand').addEventListener('click', () => { Engine.randomize(); goMain(); });
-    // Gallery → open the gallery (close menu/settings first); tap again closes it.
+    // Gallery → open the gallery (close menu/panels first); tap again closes it.
     document.getElementById('mbGallery').addEventListener('click', () => {
       if (typeof Browse !== 'undefined' && Browse.isOpen()) { Browse.close(); return; }
       document.body.classList.remove('menu-open');
-      if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
+      if (typeof RailNav !== 'undefined') RailNav.close();
+      else if (typeof setSettingsOpen === 'function') setSettingsOpen(false);
       Browse.open();
     });
-    // Menu → toggle the drawer.
+    // Menu → toggle the rail+panel drawer (opens to the effects panel beside the rail).
     document.getElementById('mbMenu').addEventListener('click', () => {
       if (document.body.classList.contains('menu-open')) {
         document.body.classList.remove('menu-open');
+        if (typeof RailNav !== 'undefined') RailNav.close();
       } else {
         if (typeof Browse !== 'undefined' && Browse.isOpen()) Browse.close();
         document.body.classList.add('menu-open');
+        if (typeof RailNav !== 'undefined') RailNav.open(RailNav.current || 'effects');
       }
     });
-    document.getElementById('mobileMenuClose').addEventListener('click', () => {
+    // Close (×) in either panel header → full close on mobile.
+    const mobileFullClose = () => {
       document.body.classList.remove('menu-open');
-    });
+      if (typeof RailNav !== 'undefined') RailNav.close();
+    };
+    document.getElementById('mobileMenuClose').addEventListener('click', mobileFullClose);
+    { const sc = document.getElementById('settingsClose'); if (sc) sc.addEventListener('click', mobileFullClose); }
 
     // Swipe on canvas = navigate favorites
     const canvas = document.getElementById('glstage');
