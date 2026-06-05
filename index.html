@@ -876,6 +876,15 @@
     left: 56px !important; right: auto !important; width: calc(100% - 56px) !important;
     top: 0 !important; bottom: calc(70px + var(--safe-bottom)) !important; height: auto !important;
   }
+  /* batch2 fixes */
+  body.is-mobile .sidebar .collapse-all-btn { display: none; }   /* (1) no collapse-all on mobile */
+  body.is-mobile .mobile-menu-close,                             /* (2) no corner × — close via the bottom ☰ button */
+  body.is-mobile #settingsClose { display: none !important; }
+  body.is-mobile #settingsPanel .sp-head {                       /* (4) clear the phone status bar (was tucked under it) */
+    padding-top: calc(var(--safe-top) + 18px);
+  }
+  body.is-mobile .browse-modal { z-index: 48; background: var(--bg); }  /* (3) gallery above the rail + fully opaque (no top-bar bleed-through) */
+  body.is-mobile .browse-modal .browse-filters { flex: 0 1 auto; }
 
   /* Top header — brand + current effect */
   .mobile-head {
@@ -898,9 +907,10 @@
   .mh-brand {
     color: var(--text);
     font-family: 'Major Mono Display', monospace;
-    font-size: 14px;
+    font-size: 18px;
     letter-spacing: .12em;
     flex: 0 0 auto;
+    text-shadow: 0 1px 10px rgba(0,0,0,.7);
   }
   .mh-brand span { color: var(--accent); }
   .mh-eff {
@@ -1146,12 +1156,20 @@
   body.is-fullscreen #hiddenHint,
   body.is-fullscreen #fpsWarn { display: none !important; }
   /* Fullscreen branding: bitjos wordmark, top-right, no background. */
-  #fsBrand { display: none; position: fixed; top: 20px; right: 26px; z-index: 31;
+  #fsBrand { display: none; position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 31;
     font-family: 'Major Mono Display', monospace; font-size: 32px; letter-spacing: .12em;
-    color: var(--text); opacity: .45; pointer-events: none; user-select: none;
+    color: var(--text); opacity: .45; pointer-events: none; user-select: none; text-align: center;
     text-shadow: 0 1px 12px rgba(0,0,0,.7); }
   #fsBrand span { color: var(--accent); }
   body.is-fullscreen #fsBrand { display: block; }
+  /* Subtle borderless "exit fullscreen" control — thin lines only, barely visible until hovered */
+  #fsExit { display: none; position: fixed; top: 16px; right: 18px; z-index: 32;
+    background: none; border: none; padding: 6px; cursor: pointer;
+    color: rgba(255,255,255,.32); transition: color .2s ease; -webkit-tap-highlight-color: transparent; }
+  #fsExit svg { width: 26px; height: 26px; fill: none; stroke: currentColor;
+    stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; display: block; }
+  #fsExit:hover { color: rgba(255,255,255,.9); }
+  body.is-fullscreen #fsExit { display: block; }
 
   /* === Desktop bottom-center bar (prev / current / next / random) === */
   .desktop-bar {
@@ -1924,9 +1942,6 @@
     <button class="rail-btn" data-rail="logo" data-tip="logo" aria-label="logo">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><polyline points="21,16 15,10 5,20"/></svg>
     </button>
-    <button class="rail-btn" data-rail="gallery" data-tip="gallery" aria-label="gallery">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>
-    </button>
     <div class="rail-spacer"></div>
     <div class="rail-sep"></div>
     <button class="rail-btn" data-rail="camera" data-tip="camera" aria-label="camera">
@@ -1951,6 +1966,9 @@
 
   <!-- Fullscreen branding watermark (top-right, shown only in fullscreen) -->
   <div id="fsBrand" aria-hidden="true">bit<span>·</span>jus</div>
+  <button id="fsExit" aria-label="exit fullscreen" title="exit fullscreen (F)">
+    <svg viewBox="0 0 24 24"><polyline points="9,4 9,9 4,9"/><polyline points="15,4 15,9 20,9"/><polyline points="9,20 9,15 4,15"/><polyline points="15,20 15,15 20,15"/></svg>
+  </button>
 
 <script id="vj-script">
 'use strict';
@@ -14184,6 +14202,8 @@ document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
     else document.exitFullscreen?.();
   });
+  const exitBtn = document.getElementById('fsExit');
+  if (exitBtn) exitBtn.addEventListener('click', () => document.exitFullscreen?.());
 })();
 
 function shiftEffect(delta) {
