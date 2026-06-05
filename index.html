@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>BITJUS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -885,6 +885,7 @@
   }
   body.is-mobile .browse-modal { z-index: 48; background: var(--bg); }  /* (3) gallery above the rail + fully opaque (no top-bar bleed-through) */
   body.is-mobile .browse-modal .browse-filters { flex: 0 1 auto; }
+  body.is-mobile #benchCard { min-width: 0 !important; width: 94vw; padding: 16px !important; }  /* benchmark card must fit the phone (was min-width 520px → progress bar ran off-screen) */
 
   /* Top header — brand + current effect */
   .mobile-head {
@@ -1090,9 +1091,12 @@
   }
   body.is-mobile.menu-open .eco-fab { display: none; }
   /* Mobile: LITE is an icon-only button docked in the bottom-right stack, just above the fullscreen icon */
+  /* Mobile bottom-right stack, comfortably above the bottom bar (~70px tall):
+     fullscreen icon, then LITE above it. */
+  body.is-mobile .output-icons { bottom: calc(84px + var(--safe-bottom, 0px)); }
   body.is-mobile .eco-fab {
     top: auto;
-    bottom: calc(120px + var(--safe-bottom, 0px));  /* output-icons sit at 72px+safe (40px tall) → +8px gap */
+    bottom: calc(132px + var(--safe-bottom, 0px));  /* above fullscreen (84+40) with an 8px gap */
     right: 14px;
     width: 40px; height: 40px;
     padding: 0;
@@ -1163,7 +1167,7 @@
   #fsBrand span { color: var(--accent); }
   body.is-fullscreen #fsBrand { display: block; }
   /* Subtle borderless "exit fullscreen" control — thin lines only, barely visible until hovered */
-  #fsExit { display: none; position: fixed; top: 16px; right: 18px; z-index: 32;
+  #fsExit { display: none; position: fixed; bottom: calc(18px + var(--safe-bottom, 0px)); right: 18px; z-index: 32;
     background: none; border: none; padding: 6px; cursor: pointer;
     color: rgba(255,255,255,.32); transition: color .2s ease; -webkit-tap-highlight-color: transparent; }
   #fsExit svg { width: 26px; height: 26px; fill: none; stroke: currentColor;
