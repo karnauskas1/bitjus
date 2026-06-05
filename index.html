@@ -577,7 +577,7 @@
   .chip-clear:hover { color: var(--warn); border-color: var(--warn); }
   /* Browse modal */
   .browse-modal { position: fixed; inset: 0; z-index: 28;
-    background: rgba(7,9,10,0.985);
+    background: var(--bg);   /* fully opaque — effects switch behind it during lazy thumb gen */
     display: none; flex-direction: column; }
   .browse-modal.open { display: flex; }
   /* While thumbnails generate, the engine cycles every effect on the live canvas — make the
@@ -13378,69 +13378,96 @@ const ShaderEditor = {
   }
 };
 
-// ───── Effect thumbnails (offline rendered) ─────
+// ───── Effect thumbnails — lazy, low-res, on-demand (only what scrolls into view) ─────
+// Instead of cycling ALL effects at full/retina resolution the moment the gallery opens
+// (very heavy), we generate a thumbnail only when its card scrolls into view, one at a
+// time, with the render buffer temporarily shrunk to ~384px so even heavy raymarchers
+// render cheaply. Engine state is saved on first generation and restored when the gallery
+// closes (the open gallery hides the canvas, so switching effects behind it is invisible).
 const Thumbs = {
   cache: {},
   generating: false,
+  _queue: [],
+  _engineSaved: false,
+  _onOne: null,
+  _shouldContinue: null,
   has(id) { return !!this.cache[id]; },
   get(id) { return this.cache[id]; },
-  // If the user explicitly selects an effect while a run is in flight, adopt it as the
-  // restore target so the end-of-run restore doesn't revert their choice.
+  // If the user picks an effect mid-run, adopt it as the restore target.
   adoptCurrent() {
-    if (!this.generating) return;
+    if (!this._engineSaved) return;
     this._savedId = Engine.effectId;
     this._savedValues = JSON.parse(JSON.stringify(Engine.paramValues));
     this._savedBindings = JSON.parse(JSON.stringify(Engine.bindings));
   },
-  async generateMissing(onProgress, shouldContinue) {
-    if (this.generating) return;
-    const all = Effects.all();
-    const missing = all.filter(e => !this.cache[e.id]);
-    if (!missing.length) return;
-    this.generating = true;
-    // Save current Engine state to restore after. Kept on the instance so a user picking an
-    // effect mid-run (e.g. a gallery card) can adopt it via adoptCurrent() and not get reverted.
+  // Queue ids (skips already-cached / already-queued) and kick the worker.
+  request(ids, onOne, shouldContinue) {
+    let added = false;
+    for (const id of ids) {
+      if (!this.cache[id] && this._queue.indexOf(id) < 0) { this._queue.push(id); added = true; }
+    }
+    if (onOne) this._onOne = onOne;
+    if (shouldContinue) this._shouldContinue = shouldContinue;
+    if (added && !this.generating) this._run();
+  },
+  // Save engine state once + shrink the render buffer to thumbnail size.
+  _enterGenMode() {
+    if (this._engineSaved) return;
     this._savedId = Engine.effectId;
     this._savedValues = JSON.parse(JSON.stringify(Engine.paramValues));
     this._savedBindings = JSON.parse(JSON.stringify(Engine.bindings));
-    // Disable crossfade overlay during thumb capture — otherwise overlay covers new effect
-    // during the short warmup (~192ms) and every thumbnail captures previous effect's frame.
-    GL._suppressXfade = true;
-    for (let i = 0; i < missing.length; i++) {
-      // Background runs (during welcome) bail out the moment the canvas is no longer hidden,
-      // so we never flicker effects onto the screen the user is actually watching.
-      if (shouldContinue && !shouldContinue()) break;
-      const eff = missing[i];
-      try {
-        Engine.setEffect(eff.id);
-        // Ensure no leftover xfade state for this iteration
-        if (GL._xfade) GL._xfade.t0 = 0;
-        const base = performance.now();
-        const warmupFrames = eff.feedback ? 30 : 12;
-        for (let f = 0; f < warmupFrames; f++) {
-          GL.render(base + f * 16);
-        }
-        // Capture a downscaled snapshot for memory savings
-        const W = GL.canvas.width, H = GL.canvas.height;
-        const tw = 320, th = Math.round(tw * H / W);
-        const off = document.createElement('canvas');
-        off.width = tw; off.height = th;
-        off.getContext('2d').drawImage(GL.canvas, 0, 0, tw, th);
-        this.cache[eff.id] = off.toDataURL('image/jpeg', 0.7);
-      } catch (e) {
-        console.warn('Thumb fail:', eff.id, e.message);
-      }
-      if (onProgress) onProgress(i + 1, missing.length, eff.name);
-      // yield to event loop so UI can repaint progress
-      await new Promise(r => setTimeout(r, 0));
-    }
-    // restore engine state (or the effect the user adopted mid-run)
+    this._savedW = GL.canvas.width; this._savedH = GL.canvas.height;
+    const aspect = (this._savedH / this._savedW) || 0.5625;
+    GL.canvas.width = 384; GL.canvas.height = Math.max(1, Math.round(384 * aspect));
+    GL._suppressXfade = true;   // crossfade overlay would smear thumbs together
+    this._engineSaved = true;
+  },
+  // Restore full render buffer + the user's live effect. Called when the gallery closes.
+  finish() {
+    this._queue.length = 0;
+    if (!this._engineSaved) return;
+    GL.canvas.width = this._savedW; GL.canvas.height = this._savedH;
+    try { if (typeof resize === 'function') resize(); } catch (e) {}
     try { Engine.setEffect(this._savedId); } catch (e) {}
     Engine.paramValues = this._savedValues;
     Engine.bindings = this._savedBindings;
-    UI.rebuildParams();
-    GL._suppressXfade = false;  // re-enable normal crossfade after thumb gen
-    this.generating = false;
+    try { UI.rebuildParams(); } catch (e) {}
+    GL._suppressXfade = false;
+    this._engineSaved = false;
+  },
+  async _run() {
+    if (this.generating || !this._queue.length) return;
+    this.generating = true;
+    this._enterGenMode();
+    try {
+      while (this._queue.length) {
+        if (this._shouldContinue && !this._shouldContinue()) break;
+        const id = this._queue.shift();
+        if (this.cache[id]) continue;
+        const eff = Effects.get(id);
+        if (!eff) continue;
+        try {
+          Engine.setEffect(id);
+          if (GL._xfade) GL._xfade.t0 = 0;
+          const base = performance.now();
+          const warm = eff.feedback ? 24 : 10;
+          for (let f = 0; f < warm; f++) GL.render(base + f * 16);
+          const W = GL.canvas.width, H = GL.canvas.height;
+          const dw = 320, dh = Math.max(1, Math.round(dw * H / W));
+          const off = document.createElement('canvas');
+          off.width = dw; off.height = dh;
+          off.getContext('2d').drawImage(GL.canvas, 0, 0, dw, dh);
+          this.cache[id] = off.toDataURL('image/jpeg', 0.7);
+        } catch (e) { console.warn('Thumb fail:', id, e.message); }
+        if (this._onOne) { try { this._onOne(id); } catch (e) {} }
+        await new Promise(r => setTimeout(r, 24));   // throttle — don't peg the CPU
+      }
+    } finally {
+      this.generating = false;
+    }
+    // Closed mid-run → restore now. Otherwise stay in gen mode (engine state kept) so
+    // further scroll-ins reuse it; the real restore happens on Browse.close().
+    if (this._shouldContinue && !this._shouldContinue()) this.finish();
   }
 };
 
@@ -13775,38 +13802,14 @@ const Browse = {
       if (e.target === this.el) this.close();
     });
   },
-  async open() {
+  open() {
     this.el.classList.add('open');
-    this.render();
-    // generate missing thumbnails (lazy, only once per session). The engine cycles every
-    // effect on the live canvas during this, so make the gallery opaque to hide the flicker.
-    const needGen = Effects.all().some(e => !Thumbs.has(e.id));
-    if (needGen) this.el.classList.add('generating');
-    try {
-    await Thumbs.generateMissing((done, total, name) => {
-      this.countEl.textContent = 'generating thumbnails ' + done + ' / ' + total + ' · ' + name;
-      // update only the card that was just generated, no full rerender
-      const lastId = Effects.all().filter(e => !!Thumbs.has(e.id)).pop()?.id;
-      if (lastId) {
-        const card = this.gridEl.querySelector('.browse-card[data-id="' + lastId + '"]');
-        if (card) {
-          const thumb = card.querySelector('.browse-card-thumb');
-          if (thumb) {
-            thumb.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = Thumbs.get(lastId);
-            thumb.appendChild(img);
-          }
-        }
-      }
-    }, () => this.isOpen());   // stop generating the moment the gallery is closed (else main screen flickers)
-    } finally {
-      this.el.classList.remove('generating');
-    }
-    // final render to ensure all thumbs visible + reset counter
-    this.render();
+    this.render();   // builds cards; thumbnails generate lazily as cards scroll into view
   },
-  close() { this.el.classList.remove('open'); },
+  close() {
+    this.el.classList.remove('open');
+    if (typeof Thumbs !== 'undefined') Thumbs.finish();   // restore full res + the user's live effect
+  },
   isOpen() { return this.el.classList.contains('open'); },
   matchesFilter(eff) {
     if (this.filter === 'favorite') return Favorites.has(eff.id);
@@ -13909,6 +13912,44 @@ const Browse = {
       }
     }
     this.countEl.textContent = shown + ' / ' + total;
+    this._observeCards();
+  },
+  // Replace a card's loading placeholder with its freshly-generated thumbnail.
+  _setCardThumb(id) {
+    const card = this.gridEl.querySelector('.browse-card[data-id="' + id + '"]');
+    if (!card || !Thumbs.has(id)) return;
+    const thumb = card.querySelector('.browse-card-thumb');
+    if (!thumb) return;
+    thumb.querySelectorAll('.thumb-placeholder').forEach(p => p.remove());
+    thumb.classList.remove('loading');
+    if (!thumb.querySelector('img')) {
+      const img = document.createElement('img');
+      img.src = Thumbs.get(id);
+      thumb.insertBefore(img, thumb.firstChild);   // keep any bench badge on top
+    }
+  },
+  // Lazily generate thumbnails only for cards that scroll into view (300px prefetch).
+  _observeCards() {
+    if (this._io) this._io.disconnect();
+    const missingCards = [...this.gridEl.querySelectorAll('.browse-card')]
+      .filter(c => !Thumbs.has(c.dataset.id));
+    if (!missingCards.length) return;
+    if (!('IntersectionObserver' in window)) {
+      // Fallback (no IO): queue all missing — still low-res + throttled via Thumbs.
+      Thumbs.request(missingCards.map(c => c.dataset.id), (id) => this._setCardThumb(id), () => this.isOpen());
+      return;
+    }
+    this._io = new IntersectionObserver((entries) => {
+      const ids = [];
+      for (const en of entries) {
+        if (!en.isIntersecting) continue;
+        const id = en.target.dataset.id;
+        if (id && !Thumbs.has(id)) ids.push(id);
+        this._io.unobserve(en.target);   // request each card once
+      }
+      if (ids.length) Thumbs.request(ids, (id) => this._setCardThumb(id), () => this.isOpen());
+    }, { root: this.gridEl, rootMargin: '300px 0px' });
+    missingCards.forEach(c => this._io.observe(c));
   }
 };
 Browse.init();
