@@ -14299,8 +14299,13 @@ if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
 // 5. 🌱 ECO MODE button — one-click bundle: render 0.35 + quality low + fps 30 + parts 0.5.
 (() => {
   // --- Render Scale ---
-  GL.renderScale = parseFloat(localStorage.getItem('pulse-vj.render-scale') || '1');
-  if (isNaN(GL.renderScale) || GL.renderScale < 0.15) GL.renderScale = 1.0;
+  // Mobile GPUs choke on heavy raymarch effects at full Retina res → default lower on phones
+  // (when the user hasn't picked a value yet). Desktop stays at full quality.
+  const _rsSaved = localStorage.getItem('pulse-vj.render-scale');
+  const _isMobileGuess = (window.innerWidth < 800) ||
+    (navigator.maxTouchPoints > 1 && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  GL.renderScale = parseFloat(_rsSaved);
+  if (isNaN(GL.renderScale) || GL.renderScale < 0.15) GL.renderScale = _isMobileGuess ? 0.5 : 1.0;
 
   // Patch GL.resize to honour renderScale.
   GL.resize = function(w, h) {
