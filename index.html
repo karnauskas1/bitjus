@@ -8639,9 +8639,19 @@ Effects.register({
 
 const Favorites = {
   KEY: 'pulse-vj.favorites.v1',
-  defaults: ['supernovae-fusion', 'point-cloud', 'ink-ripples',
-             'accretion', 'sand-ghost', 'phosphor', 'wave-pattern'],
+  defaults: ['supernovae-fusion', 'bio-flow', 'strunes', 'point-cloud', 'fire-3d',
+             'tribulence-warp', 'accretion', 'kandinsky', 'recursive-noise-a',
+             'marbling-black', 'ether', 'plasma-ball', 'taste-of-noise'],
+  // Previous built-in set. Anyone still on it (i.e. never customized their stars) is
+  // auto-upgraded to the new curated `defaults` — without renaming the storage KEY.
+  _legacyDefaults: ['supernovae-fusion', 'point-cloud', 'ink-ripples',
+                    'accretion', 'sand-ghost', 'phosphor', 'wave-pattern'],
   _data: null,
+  _sameSet(a, b) {
+    if (!Array.isArray(a) || a.length !== b.length) return false;
+    const sa = [...a].sort(), sb = [...b].sort();
+    return sa.every((v, i) => v === sb[i]);
+  },
   load() {
     if (this._data) return this._data;
     try {
@@ -8649,6 +8659,11 @@ const Favorites = {
       const parsed = raw ? JSON.parse(raw) : null;
       this._data = Array.isArray(parsed) ? parsed : null;
     } catch(e) {}
+    // One-time upgrade for users still on the old built-in defaults.
+    if (this._data && this._sameSet(this._data, this._legacyDefaults)) {
+      this._data = this.defaults.slice();
+      this.save();
+    }
     if (!this._data) this._data = this.defaults.slice();
     return this._data;
   },
