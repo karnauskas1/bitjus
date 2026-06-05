@@ -856,6 +856,7 @@
   /* === Mobile: icon rail docked inside the open menu (desktop-style) === */
   body.is-mobile .icon-rail { display: none; }
   body.is-mobile .rail-brand { display: none; }   /* one logo in the menu = the sidebar 'bit·jus' */
+  body.is-mobile .rail-btn[data-rail="gallery"] { display: none; }  /* gallery lives in the bottom bar on mobile */
   body.is-mobile .brand-gear { display: none !important; }  /* rail icons replace the gear on mobile */
   body.is-mobile #buildStamp { display: none; }             /* dev build stamp clutters the narrow header */
   body.is-mobile.menu-open .icon-rail {
@@ -1946,6 +1947,9 @@
     </button>
     <button class="rail-btn" data-rail="logo" data-tip="logo" aria-label="logo">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><polyline points="21,16 15,10 5,20"/></svg>
+    </button>
+    <button class="rail-btn" data-rail="gallery" data-tip="gallery" aria-label="gallery">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>
     </button>
     <div class="rail-spacer"></div>
     <div class="rail-sep"></div>
