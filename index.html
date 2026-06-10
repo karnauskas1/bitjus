@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>BITJUS</title>
+<title>BITJUS — визуал, который слышит твою музыку</title>
+<meta name="description" content="Бесплатный аудио-реактивный VJ-инструмент в браузере: 60+ эффектов двигаются под твою музыку в реальном времени. Без установки — открой и играй." />
+<meta name="theme-color" content="#07090a" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307090a'/%3E%3Ctext x='32' y='46' font-family='monospace' font-size='38' font-weight='700' fill='%23c4ff3d' text-anchor='middle'%3Eb%C2%B7%3C/text%3E%3C/svg%3E" />
+<!-- Open Graph / соц-карточки (TG, VK, и др.) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="BITJUS" />
+<meta property="og:url" content="https://bitjus.ru/" />
+<meta property="og:title" content="BITJUS — визуал, который слышит твою музыку" />
+<meta property="og:description" content="Бесплатный аудио-реактивный VJ-инструмент в браузере: 60+ эффектов двигаются под музыку в реальном времени. Без установки." />
+<meta property="og:image" content="https://bitjus.ru/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="ru_RU" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="BITJUS — визуал, который слышит твою музыку" />
+<meta name="twitter:description" content="Бесплатный аудио-реактивный VJ-инструмент в браузере: 60+ эффектов двигаются под музыку в реальном времени." />
+<meta name="twitter:image" content="https://bitjus.ru/og.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Major+Mono+Display&display=swap" rel="stylesheet">
@@ -1293,7 +1310,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <span>bit<span>·</span>jus</span>
-        <span id="buildStamp" title="build version — confirm you loaded the latest file" style="margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.04em;color:#5fd3a0;opacity:.75;font-family:ui-monospace,monospace;">v2.0 · b.2026-06-01.40</span>
+        <span id="buildStamp" title="build version — confirm you loaded the latest file" style="margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.04em;color:#5fd3a0;opacity:.75;font-family:ui-monospace,monospace;">v2.0 · b.2026-06-09.41</span>
         <div class="segmented brand-lang" id="setupLang" title="language">
           <button class="seg-btn" data-lang-btn="en">EN</button>
           <button class="seg-btn" data-lang-btn="ru">RU</button>
@@ -1911,7 +1928,7 @@
   <div class="welcome" id="welcome">
     <div class="welcome-inner">
       <h1>bit<span>·</span>jus</h1>
-      <div class="tag">— audio-reactive visuals · v0.2.1 —</div>
+      <div class="tag">— audio-reactive visuals · v2.0 —</div>
       <div class="lang-toggle" id="welcomeLang"><button class="lang-btn" data-lang-btn="en">EN</button><button class="lang-btn" data-lang-btn="ru">RU</button></div>
       <p data-i18n-html="welcome.intro">Two ways to feed audio — pick a source:</p>
       <div class="welcome-modes">
@@ -2188,7 +2205,7 @@ Object.assign(I18n.dict, {
   "mult": "умнож",
   "audio": "аудио",
   "video": "видео",
-  "— audio-reactive visuals · v0.2.1 —": "— аудио-реактивные визуалы · v0.2.1 —",
+  "— audio-reactive visuals · v2.0 —": "— аудио-реактивные визуалы · v2.0 —",
   "Benchmark": "Бенчмарк",
   "tier": "класс",
   "effect": "эффект",
@@ -14375,7 +14392,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('resize', resize);
-console.log('%c[BITJOS] v2.0 (build b.2026-06-01.40) — release: autoplayer, randomize intensity, sticky collapse-all, logo polish', 'color:#5fd3a0;font-weight:bold');
+console.log('%c[BITJOS] v2.0 (build b.2026-06-09.41) — og meta + social preview + favicon, welcome version fix', 'color:#5fd3a0;font-weight:bold');
 GL.init();
 // ── WebGL context-loss auto-recovery ──────────────────────────────────────
 // Survive a GPU hiccup mid-set (driver reset, sleep/wake, GPU switch) without a
